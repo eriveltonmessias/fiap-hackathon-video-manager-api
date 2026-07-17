@@ -4,16 +4,29 @@ Microservico da solucao FIAP X responsavel por receber videos, controlar o ciclo
 
 ## Status
 
-Esta branch contem somente a estrutura inicial do servico:
+O servico possui atualmente:
 
 - Spring Boot com Kotlin;
 - Gradle Kotlin DSL;
 - Java 21;
 - health check com Actuator;
 - separacao inicial em camadas;
-- teste de inicializacao do contexto.
+- agregado de dominio `VideoProcessing`;
+- value objects para identificadores, nomes e chaves de objetos;
+- maquina de estados do processamento;
+- testes das invariantes e transicoes de dominio.
 
-Dominio, banco de dados, seguranca, MinIO e Kafka serao adicionados em branches proprias.
+Banco de dados, seguranca, MinIO e Kafka serao adicionados em branches proprias.
+
+## Ciclo do processamento
+
+O agregado controla as seguintes transicoes:
+
+```text
+RECEIVED -> STORED -> PENDING_PROCESSING -> PROCESSING -> PROCESSED
+```
+
+Qualquer estado nao terminal pode transicionar para `FAILED`. Estados terminais nao aceitam novas transicoes.
 
 ## Arquitetura
 
@@ -85,10 +98,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera a modelagem do dominio de processamento de video na branch:
+A proxima task sera a persistencia PostgreSQL na branch:
 
 ```text
-feature/video-domain
+feature/video-persistence
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/project-structure` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/video-domain` na `main`.
