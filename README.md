@@ -14,9 +14,12 @@ O servico possui atualmente:
 - agregado de dominio `VideoProcessing`;
 - value objects para identificadores, nomes e chaves de objetos;
 - maquina de estados do processamento;
+- persistencia PostgreSQL com Spring Data JPA;
+- versionamento do schema com Flyway;
+- testes de integracao com PostgreSQL real via Testcontainers;
 - testes das invariantes e transicoes de dominio.
 
-Banco de dados, seguranca, MinIO e Kafka serao adicionados em branches proprias.
+Seguranca, MinIO e Kafka serao adicionados em branches proprias.
 
 ## Ciclo do processamento
 
@@ -49,10 +52,30 @@ Regras de dependencia:
 
 - Java 21
 - Git
-
-Docker sera necessario nas proximas tasks, quando PostgreSQL, MinIO e Kafka forem adicionados.
+- Docker
 
 O projeto usa Gradle Wrapper, portanto nao e necessario instalar Gradle globalmente.
+
+## Banco de dados local
+
+Inicie o PostgreSQL na porta `5434`:
+
+```bash
+docker compose up -d postgres-video
+```
+
+O Flyway cria e atualiza o schema na inicializacao da aplicacao. O Hibernate usa
+`ddl-auto=validate` e nao altera o schema.
+
+Configuracao padrao:
+
+```text
+DB_URL=jdbc:postgresql://localhost:5434/video_db
+DB_USERNAME=fiapx
+DB_PASSWORD=fiapx
+```
+
+Esses valores podem ser sobrescritos por variaveis de ambiente.
 
 ## Executar testes
 
@@ -98,10 +121,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera a persistencia PostgreSQL na branch:
+A proxima task sera a seguranca JWT na branch:
 
 ```text
-feature/video-persistence
+feature/jwt-security
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/video-domain` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/video-persistence` na `main`.
