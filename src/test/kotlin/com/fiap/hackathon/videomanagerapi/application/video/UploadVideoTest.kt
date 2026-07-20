@@ -19,11 +19,12 @@ class UploadVideoTest {
 	private val customerId = UUID.fromString("1d3dd58c-9f3e-4bb8-81da-591c2a02e53f")
 	private val videoId = UUID.fromString("3386a249-40d8-44e8-a1d3-b7dc92bd96f1")
 	private val occurredAt = Instant.parse("2026-07-20T15:00:00Z")
-	private val repository = RecordingVideoProcessingRepository()
+	private val eventId = UUID.fromString("b85c031f-29dd-49fd-9788-adeb0f70eb72")
+	private val registration = RecordingVideoProcessingRequestRegistration()
 	private val storage = RecordingVideoStorage()
 	private val useCase = UploadVideo(
 		authenticatedCustomerProvider = AuthenticatedCustomerProvider { customerId },
-		repository = repository,
+		registration = registration,
 		storage = storage,
 		policy = VideoUploadPolicy(
 			maximumContentLength = 10,
@@ -32,23 +33,29 @@ class UploadVideoTest {
 		),
 		clock = Clock.fixed(occurredAt, ZoneOffset.UTC),
 		idGenerator = { videoId },
+		eventIdGenerator = { eventId },
 	)
 
 	@Test
-	fun `uploads video before persisting stored aggregate`() {
+	fun `uploads video before persisting pending aggregate and event`() {
 		val content = "video".toByteArray()
 
 		val result = useCase.execute(command(content = content))
 
 		assertEquals(videoId, result.videoId)
-		assertEquals(VideoStatus.STORED, result.status)
+		assertEquals(VideoStatus.PENDING_PROCESSING, result.status)
 		assertContentEquals(content, storage.uploadedContent)
 		assertEquals("video/mp4", storage.contentType)
-		val saved = requireNotNull(repository.saved)
+		val saved = requireNotNull(registration.saved)
 		assertEquals(customerId, saved.customerId)
 		assertEquals("sample.mp4", saved.originalFilename.value)
 		assertEquals("customers/$customerId/videos/$videoId/input", saved.inputObjectKey?.value)
 		assertEquals(occurredAt, saved.createdAt)
+		val event = requireNotNull(registration.event)
+		assertEquals(eventId, event.eventId)
+		assertEquals(videoId, event.videoId)
+		assertEquals(customerId, event.customerId)
+		assertEquals(saved.inputObjectKey?.value, event.inputObjectKey)
 	}
 
 	@Test
@@ -58,7 +65,7 @@ class UploadVideoTest {
 		assertFailsWith<IllegalStateException> {
 			useCase.execute(command())
 		}
-		assertNull(repository.saved)
+		assertNull(registration.saved)
 	}
 
 	@Test
@@ -97,11 +104,15 @@ class UploadVideoTest {
 	)
 }
 
-private class RecordingVideoProcessingRepository : VideoProcessingRepository {
+private class RecordingVideoProcessingRequestRegistration : VideoProcessingRequestRegistration {
 	var saved: VideoProcessing? = null
+	var event: VideoProcessingRequested? = null
 
-	override fun save(videoProcessing: VideoProcessing): VideoProcessing = videoProcessing.also { saved = it }
-	override fun findById(id: UUID): VideoProcessing? = saved?.takeIf { it.id == id }
+	override fun save(videoProcessing: VideoProcessing, event: VideoProcessingRequested): VideoProcessing =
+		videoProcessing.also {
+			saved = it
+			this.event = event
+		}
 }
 
 private class RecordingVideoStorage : VideoStorage {

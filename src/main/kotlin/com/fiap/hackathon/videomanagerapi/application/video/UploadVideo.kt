@@ -22,11 +22,12 @@ data class UploadVideoResult(
 
 class UploadVideo(
 	private val authenticatedCustomerProvider: AuthenticatedCustomerProvider,
-	private val repository: VideoProcessingRepository,
+	private val registration: VideoProcessingRequestRegistration,
 	private val storage: VideoStorage,
 	private val policy: VideoUploadPolicy,
 	private val clock: Clock,
 	private val idGenerator: () -> UUID = UUID::randomUUID,
+	private val eventIdGenerator: () -> UUID = UUID::randomUUID,
 ) {
 	fun execute(command: UploadVideoCommand): UploadVideoResult {
 		val filename = command.originalFilename.toOriginalFilename()
@@ -45,7 +46,16 @@ class UploadVideo(
 			contentType = contentType,
 		)
 		video.markStored(objectKey, occurredAt)
-		val saved = repository.save(video)
+		video.markPendingProcessing(occurredAt)
+		val event = VideoProcessingRequested(
+			eventId = eventIdGenerator(),
+			occurredAt = occurredAt,
+			videoId = videoId,
+			customerId = customerId,
+			originalFilename = filename.value,
+			inputObjectKey = objectKey.value,
+		)
+		val saved = registration.save(video, event)
 		return UploadVideoResult(saved.id, saved.status)
 	}
 
