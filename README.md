@@ -21,6 +21,7 @@ O servico possui atualmente:
 - storage S3 compativel com MinIO;
 - criacao automatica dos buckets de entrada e saida;
 - upload multipart autenticado de videos;
+- consulta paginada e detalhe de videos isolados por cliente;
 - testes de integracao com PostgreSQL e MinIO reais via Testcontainers;
 - testes das invariantes e transicoes de dominio.
 
@@ -131,6 +132,26 @@ Por padrao, o arquivo deve ter ate `500MB`, nao pode estar vazio e deve possuir
 extensao e tipo de video suportados. O limite pode ser alterado com
 `VIDEO_MAX_FILE_SIZE` e `VIDEO_MAX_REQUEST_SIZE`.
 
+## Consulta de videos
+
+Liste os videos do cliente autenticado:
+
+```bash
+curl 'http://localhost:8082/videos?page=0&size=20' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Consulte um video especifico:
+
+```bash
+curl http://localhost:8082/videos/VIDEO_ID \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+A listagem aceita paginas a partir de `0` e tamanho entre `1` e `100`. Videos
+de outro cliente retornam o mesmo `404` de um identificador inexistente. As
+respostas nao expoem as chaves internas dos objetos no MinIO.
+
 ## Executar testes
 
 ```bash
@@ -175,10 +196,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera a consulta de videos na branch:
+A proxima task sera a publicacao transacional via Kafka e Outbox na branch:
 
 ```text
-feature/video-query
+feature/video-processing-outbox
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/video-upload` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/video-query` na `main`.

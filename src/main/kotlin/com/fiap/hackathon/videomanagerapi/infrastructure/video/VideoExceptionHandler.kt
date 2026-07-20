@@ -1,7 +1,9 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.video
 
 import com.fiap.hackathon.videomanagerapi.application.video.InvalidVideoUploadException
+import com.fiap.hackathon.videomanagerapi.application.video.InvalidVideoQueryException
 import com.fiap.hackathon.videomanagerapi.application.video.VideoTooLargeException
+import com.fiap.hackathon.videomanagerapi.application.video.VideoNotFoundException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -21,6 +23,14 @@ data class VideoApiError(
 
 @RestControllerAdvice
 class VideoExceptionHandler {
+	@ExceptionHandler(VideoNotFoundException::class)
+	fun notFound(exception: VideoNotFoundException, request: HttpServletRequest) =
+		response(HttpStatus.NOT_FOUND, exception.message.orEmpty(), request)
+
+	@ExceptionHandler(InvalidVideoQueryException::class)
+	fun invalidQuery(exception: InvalidVideoQueryException, request: HttpServletRequest) =
+		response(HttpStatus.BAD_REQUEST, exception.message.orEmpty(), request)
+
 	@ExceptionHandler(InvalidVideoUploadException::class, MultipartException::class)
 	fun badRequest(exception: RuntimeException, request: HttpServletRequest) =
 		response(HttpStatus.BAD_REQUEST, exception.message ?: "Invalid multipart request", request)
