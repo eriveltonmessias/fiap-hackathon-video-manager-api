@@ -1,6 +1,10 @@
 spring:
   application:
     name: video-manager-api
+  servlet:
+    multipart:
+      max-file-size: ${VIDEO_MAX_FILE_SIZE:500MB}
+      max-request-size: ${VIDEO_MAX_REQUEST_SIZE:501MB}
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5434/video_db}
     username: ${DB_USERNAME:fiapx}
@@ -13,6 +17,23 @@ spring:
     enabled: true
 
 app:
+  video-upload:
+    maximum-file-size: ${VIDEO_MAX_FILE_SIZE:500MB}
+    allowed-content-types:
+      - video/mp4
+      - video/quicktime
+      - video/x-msvideo
+      - video/x-matroska
+      - video/webm
+      - video/mpeg
+    allowed-extensions:
+      - mp4
+      - mov
+      - avi
+      - mkv
+      - webm
+      - mpeg
+      - mpg
   security:
     jwt-secret: ${JWT_SECRET:local-development-jwt-secret-change-me-1234567890}
     jwt-issuer: ${JWT_ISSUER:customer-auth-api}

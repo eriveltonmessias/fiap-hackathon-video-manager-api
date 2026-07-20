@@ -20,6 +20,7 @@ O servico possui atualmente:
 - identificacao do cliente pela claim `customer_id`;
 - storage S3 compativel com MinIO;
 - criacao automatica dos buckets de entrada e saida;
+- upload multipart autenticado de videos;
 - testes de integracao com PostgreSQL e MinIO reais via Testcontainers;
 - testes das invariantes e transicoes de dominio.
 
@@ -115,6 +116,21 @@ JWT_ISSUER=customer-auth-api
 Somente `GET /actuator/health` e publico. Os demais endpoints exigem um token
 Bearer valido com a claim `customer_id` no formato UUID.
 
+## Upload de video
+
+Envie o arquivo no campo multipart `file`:
+
+```bash
+curl -X POST http://localhost:8082/videos \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -F 'file=@video.mp4;type=video/mp4'
+```
+
+Um upload valido retorna `202 Accepted` com o identificador e o status `STORED`.
+Por padrao, o arquivo deve ter ate `500MB`, nao pode estar vazio e deve possuir
+extensao e tipo de video suportados. O limite pode ser alterado com
+`VIDEO_MAX_FILE_SIZE` e `VIDEO_MAX_REQUEST_SIZE`.
+
 ## Executar testes
 
 ```bash
@@ -159,10 +175,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera o endpoint de upload de video na branch:
+A proxima task sera a consulta de videos na branch:
 
 ```text
-feature/video-upload
+feature/video-query
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/minio-storage` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/video-upload` na `main`.
