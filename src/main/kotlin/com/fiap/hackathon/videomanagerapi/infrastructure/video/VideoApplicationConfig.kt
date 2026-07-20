@@ -5,6 +5,7 @@ import com.fiap.hackathon.videomanagerapi.application.video.GetVideo
 import com.fiap.hackathon.videomanagerapi.application.video.ListVideos
 import com.fiap.hackathon.videomanagerapi.application.video.UploadVideo
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingRepository
+import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingRequestRegistration
 import com.fiap.hackathon.videomanagerapi.application.video.VideoQueryRepository
 import com.fiap.hackathon.videomanagerapi.application.video.VideoStorage
 import com.fiap.hackathon.videomanagerapi.application.video.VideoUploadPolicy
@@ -29,11 +30,11 @@ class VideoApplicationConfig {
 	@Bean
 	fun uploadVideo(
 		authenticatedCustomerProvider: AuthenticatedCustomerProvider,
-		repository: VideoProcessingRepository,
+		registration: VideoProcessingRequestRegistration,
 		storage: VideoStorage,
 		policy: VideoUploadPolicy,
 		clock: Clock,
-	): UploadVideo = UploadVideo(authenticatedCustomerProvider, repository, storage, policy, clock)
+	): UploadVideo = UploadVideo(authenticatedCustomerProvider, registration, storage, policy, clock)
 
 	@Bean
 	fun getVideo(

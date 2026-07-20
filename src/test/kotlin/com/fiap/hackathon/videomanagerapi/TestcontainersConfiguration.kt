@@ -32,6 +32,7 @@ class TestcontainersConfiguration {
 		}
 		registry.add("app.storage.minio.access-key") { "fiapx" }
 		registry.add("app.storage.minio.secret-key") { "fiapx12345" }
+		registry.add("app.outbox.scheduling-enabled") { "false" }
 	}
 
 	private companion object {

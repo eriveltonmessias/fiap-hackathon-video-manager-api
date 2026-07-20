@@ -22,10 +22,9 @@ O servico possui atualmente:
 - criacao automatica dos buckets de entrada e saida;
 - upload multipart autenticado de videos;
 - consulta paginada e detalhe de videos isolados por cliente;
-- testes de integracao com PostgreSQL e MinIO reais via Testcontainers;
+- publicacao assincrona com Kafka e Transactional Outbox;
+- testes de integracao com PostgreSQL, MinIO e Kafka reais via Testcontainers;
 - testes das invariantes e transicoes de dominio.
-
-Kafka sera adicionado em branch propria.
 
 ## Ciclo do processamento
 
@@ -127,7 +126,8 @@ curl -X POST http://localhost:8082/videos \
   -F 'file=@video.mp4;type=video/mp4'
 ```
 
-Um upload valido retorna `202 Accepted` com o identificador e o status `STORED`.
+Um upload valido retorna `202 Accepted` com o identificador e o status
+`PENDING_PROCESSING`.
 Por padrao, o arquivo deve ter ate `500MB`, nao pode estar vazio e deve possuir
 extensao e tipo de video suportados. O limite pode ser alterado com
 `VIDEO_MAX_FILE_SIZE` e `VIDEO_MAX_REQUEST_SIZE`.
@@ -151,6 +151,33 @@ curl http://localhost:8082/videos/VIDEO_ID \
 A listagem aceita paginas a partir de `0` e tamanho entre `1` e `100`. Videos
 de outro cliente retornam o mesmo `404` de um identificador inexistente. As
 respostas nao expoem as chaves internas dos objetos no MinIO.
+
+## Kafka e Outbox
+
+Inicie o broker Kafka na porta `9092`:
+
+```bash
+docker compose up -d kafka
+```
+
+Depois do upload no MinIO, o registro do video e o evento
+`VideoProcessingRequested` sao gravados na mesma transacao PostgreSQL. O
+dispatcher publica eventos pendentes no topico `video.processing.requested` e
+so preenche `published_at` depois da confirmacao do Kafka.
+
+Se a publicacao falhar, a tentativa e registrada e o evento permanece pendente
+para retry. A entrega e pelo menos uma vez; consumidores devem usar `eventId`
+para tratar repeticoes de forma idempotente.
+
+Configuracao principal:
+
+```text
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+OUTBOX_FIXED_DELAY=1s
+OUTBOX_BATCH_SIZE=50
+OUTBOX_RETRY_DELAY=5s
+OUTBOX_SEND_TIMEOUT=10s
+```
 
 ## Executar testes
 
@@ -196,10 +223,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera a publicacao transacional via Kafka e Outbox na branch:
+A proxima task sera o consumo dos resultados de processamento na branch:
 
 ```text
-feature/video-processing-outbox
+feature/processing-results
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/video-query` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/video-processing-outbox` na `main`.

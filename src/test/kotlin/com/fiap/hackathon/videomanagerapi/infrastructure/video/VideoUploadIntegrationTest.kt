@@ -5,6 +5,7 @@ import com.fiap.hackathon.videomanagerapi.application.video.StorageBucket
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingRepository
 import com.fiap.hackathon.videomanagerapi.application.video.VideoStorage
 import com.fiap.hackathon.videomanagerapi.domain.video.VideoStatus
+import com.fiap.hackathon.videomanagerapi.infrastructure.outbox.SpringDataOutboxEventRepository
 import com.nimbusds.jose.jwk.source.ImmutableSecret
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -44,9 +45,11 @@ class VideoUploadIntegrationTest(
 	@Autowired private val repository: VideoProcessingRepository,
 	@Autowired private val springDataRepository: SpringDataVideoProcessingRepository,
 	@Autowired private val videoStorage: VideoStorage,
+	@Autowired private val outboxRepository: SpringDataOutboxEventRepository,
 ) {
 	@BeforeEach
 	fun cleanDatabase() {
+		outboxRepository.deleteAll()
 		springDataRepository.deleteAll()
 	}
 
@@ -58,15 +61,17 @@ class VideoUploadIntegrationTest(
 				.file(videoFile())
 				.header("Authorization", "Bearer ${token(customerId)}"),
 		).andExpect(status().isAccepted)
-			.andExpect(jsonPath("$.status").value("STORED"))
+			.andExpect(jsonPath("$.status").value("PENDING_PROCESSING"))
 			.andReturn().response.contentAsString
 		val videoId = UUID.fromString(objectMapper.readTree(response).path("videoId").stringValue())
 
 		val saved = assertNotNull(repository.findById(videoId))
 		assertEquals(customerId, saved.customerId)
-		assertEquals(VideoStatus.STORED, saved.status)
+		assertEquals(VideoStatus.PENDING_PROCESSING, saved.status)
 		assertEquals("sample.mp4", saved.originalFilename.value)
 		assertTrue(videoStorage.exists(StorageBucket.INPUT, assertNotNull(saved.inputObjectKey)))
+		assertEquals(1, outboxRepository.count())
+		assertEquals(null, outboxRepository.findAll().single().publishedAt)
 	}
 
 	@Test

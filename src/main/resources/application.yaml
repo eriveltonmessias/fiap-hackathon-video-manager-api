@@ -15,8 +15,22 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
 
 app:
+  outbox:
+    scheduling-enabled: ${OUTBOX_SCHEDULING_ENABLED:true}
+    fixed-delay: ${OUTBOX_FIXED_DELAY:1s}
+    batch-size: ${OUTBOX_BATCH_SIZE:50}
+    retry-delay: ${OUTBOX_RETRY_DELAY:5s}
+    send-timeout: ${OUTBOX_SEND_TIMEOUT:10s}
   video-upload:
     maximum-file-size: ${VIDEO_MAX_FILE_SIZE:500MB}
     allowed-content-types:
