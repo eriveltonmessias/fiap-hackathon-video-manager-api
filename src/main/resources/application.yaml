@@ -12,6 +12,11 @@ spring:
   flyway:
     enabled: true
 
+app:
+  security:
+    jwt-secret: ${JWT_SECRET:local-development-jwt-secret-change-me-1234567890}
+    jwt-issuer: ${JWT_ISSUER:customer-auth-api}
+
 server:
   port: ${SERVER_PORT:8082}
 

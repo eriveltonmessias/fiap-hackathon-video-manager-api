@@ -16,10 +16,12 @@ O servico possui atualmente:
 - maquina de estados do processamento;
 - persistencia PostgreSQL com Spring Data JPA;
 - versionamento do schema com Flyway;
+- validacao JWT com OAuth2 Resource Server;
+- identificacao do cliente pela claim `customer_id`;
 - testes de integracao com PostgreSQL real via Testcontainers;
 - testes das invariantes e transicoes de dominio.
 
-Seguranca, MinIO e Kafka serao adicionados em branches proprias.
+MinIO e Kafka serao adicionados em branches proprias.
 
 ## Ciclo do processamento
 
@@ -77,6 +79,19 @@ DB_PASSWORD=fiapx
 
 Esses valores podem ser sobrescritos por variaveis de ambiente.
 
+## Seguranca
+
+A API valida os tokens HS256 emitidos pelo `customer-auth-api`. Os dois servicos
+devem compartilhar o mesmo segredo e issuer:
+
+```text
+JWT_SECRET=local-development-jwt-secret-change-me-1234567890
+JWT_ISSUER=customer-auth-api
+```
+
+Somente `GET /actuator/health` e publico. Os demais endpoints exigem um token
+Bearer valido com a claim `customer_id` no formato UUID.
+
 ## Executar testes
 
 ```bash
@@ -121,10 +136,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera a seguranca JWT na branch:
+A proxima task sera a integracao com MinIO na branch:
 
 ```text
-feature/jwt-security
+feature/minio-storage
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/video-persistence` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/jwt-security` na `main`.
