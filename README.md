@@ -18,10 +18,12 @@ O servico possui atualmente:
 - versionamento do schema com Flyway;
 - validacao JWT com OAuth2 Resource Server;
 - identificacao do cliente pela claim `customer_id`;
-- testes de integracao com PostgreSQL real via Testcontainers;
+- storage S3 compativel com MinIO;
+- criacao automatica dos buckets de entrada e saida;
+- testes de integracao com PostgreSQL e MinIO reais via Testcontainers;
 - testes das invariantes e transicoes de dominio.
 
-MinIO e Kafka serao adicionados em branches proprias.
+Kafka sera adicionado em branch propria.
 
 ## Ciclo do processamento
 
@@ -78,6 +80,27 @@ DB_PASSWORD=fiapx
 ```
 
 Esses valores podem ser sobrescritos por variaveis de ambiente.
+
+## Storage local
+
+Inicie o MinIO nas portas `9000` (API) e `9001` (console):
+
+```bash
+docker compose up -d minio
+```
+
+A aplicacao cria os buckets `fiapx-videos-input` e `fiapx-videos-output` de
+forma idempotente durante a inicializacao.
+
+Configuracao padrao:
+
+```text
+MINIO_ENDPOINT=http://localhost:9000
+MINIO_ACCESS_KEY=fiapx
+MINIO_SECRET_KEY=fiapx12345
+MINIO_INPUT_BUCKET=fiapx-videos-input
+MINIO_OUTPUT_BUCKET=fiapx-videos-output
+```
 
 ## Seguranca
 
@@ -136,10 +159,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera a integracao com MinIO na branch:
+A proxima task sera o endpoint de upload de video na branch:
 
 ```text
-feature/minio-storage
+feature/video-upload
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/jwt-security` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/minio-storage` na `main`.
