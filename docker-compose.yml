@@ -1,0 +1,21 @@
+services:
+  postgres-video:
+    image: postgres:16
+    container_name: fiapx-postgres-video
+    environment:
+      POSTGRES_DB: video_db
+      POSTGRES_USER: fiapx
+      POSTGRES_PASSWORD: fiapx
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_video_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fiapx -d video_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_video_data:

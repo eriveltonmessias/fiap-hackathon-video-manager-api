@@ -1,10 +1,11 @@
 package com.fiap.hackathon.videomanagerapi.domain.video
 
 import java.time.Instant
+import java.util.UUID
 
 class VideoProcessing private constructor(
-	val id: VideoId,
-	val customerId: CustomerId,
+	val id: UUID,
+	val customerId: UUID,
 	val originalFilename: OriginalFilename,
 	status: VideoStatus,
 	inputObjectKey: ObjectKey?,
@@ -85,8 +86,8 @@ class VideoProcessing private constructor(
 
 	companion object {
 		fun receive(
-			id: VideoId,
-			customerId: CustomerId,
+			id: UUID,
+			customerId: UUID,
 			originalFilename: OriginalFilename,
 			receivedAt: Instant,
 		): VideoProcessing = VideoProcessing(
@@ -102,8 +103,8 @@ class VideoProcessing private constructor(
 		)
 
 		fun restore(
-			id: VideoId,
-			customerId: CustomerId,
+			id: UUID,
+			customerId: UUID,
 			originalFilename: OriginalFilename,
 			status: VideoStatus,
 			inputObjectKey: ObjectKey?,
