@@ -11,8 +11,8 @@ import kotlin.test.assertTrue
 
 class VideoProcessingTest {
 	private val receivedAt = Instant.parse("2026-01-01T10:00:00Z")
-	private val videoId = VideoId(UUID.fromString("5a7ff337-81a3-4f75-b93f-e43f1fc0441f"))
-	private val customerId = CustomerId(UUID.fromString("c3049024-0dbe-4cb0-aa7f-7e74dfe0ebfc"))
+	private val videoId = UUID.fromString("5a7ff337-81a3-4f75-b93f-e43f1fc0441f")
+	private val customerId = UUID.fromString("c3049024-0dbe-4cb0-aa7f-7e74dfe0ebfc")
 
 	@Test
 	fun `receives a new video`() {

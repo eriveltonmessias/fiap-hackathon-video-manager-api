@@ -12,7 +12,7 @@ O servico possui atualmente:
 - health check com Actuator;
 - separacao inicial em camadas;
 - agregado de dominio `VideoProcessing`;
-- value objects para identificadores, nomes e chaves de objetos;
+- value objects para nomes, chaves de objetos e motivo de falha;
 - maquina de estados do processamento;
 - persistencia PostgreSQL com Spring Data JPA;
 - versionamento do schema com Flyway;

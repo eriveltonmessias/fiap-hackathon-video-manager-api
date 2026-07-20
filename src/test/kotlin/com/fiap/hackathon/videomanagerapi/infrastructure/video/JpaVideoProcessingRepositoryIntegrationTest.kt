@@ -2,10 +2,8 @@ package com.fiap.hackathon.videomanagerapi.infrastructure.video
 
 import com.fiap.hackathon.videomanagerapi.TestcontainersConfiguration
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingRepository
-import com.fiap.hackathon.videomanagerapi.domain.video.CustomerId
 import com.fiap.hackathon.videomanagerapi.domain.video.ObjectKey
 import com.fiap.hackathon.videomanagerapi.domain.video.OriginalFilename
-import com.fiap.hackathon.videomanagerapi.domain.video.VideoId
 import com.fiap.hackathon.videomanagerapi.domain.video.VideoProcessing
 import com.fiap.hackathon.videomanagerapi.domain.video.VideoStatus
 import org.junit.jupiter.api.BeforeEach
@@ -33,8 +31,8 @@ class JpaVideoProcessingRepositoryIntegrationTest(
 	fun `persists and restores the complete aggregate in PostgreSQL`() {
 		val receivedAt = Instant.parse("2026-07-20T10:00:00Z")
 		val video = VideoProcessing.receive(
-			id = VideoId.from("8e711dbe-44fa-4de2-9f9b-906fc0329153"),
-			customerId = CustomerId.from("6392514e-78a3-43da-92ef-89c62fdbbafb"),
+			id = UUID.fromString("8e711dbe-44fa-4de2-9f9b-906fc0329153"),
+			customerId = UUID.fromString("6392514e-78a3-43da-92ef-89c62fdbbafb"),
 			originalFilename = OriginalFilename.of("architecture-review.mp4"),
 			receivedAt = receivedAt,
 		).apply {
@@ -60,6 +58,6 @@ class JpaVideoProcessingRepositoryIntegrationTest(
 
 	@Test
 	fun `returns null when video does not exist`() {
-		assertEquals(null, videoProcessingRepository.findById(VideoId(UUID.randomUUID())))
+		assertEquals(null, videoProcessingRepository.findById(UUID.randomUUID()))
 	}
 }
