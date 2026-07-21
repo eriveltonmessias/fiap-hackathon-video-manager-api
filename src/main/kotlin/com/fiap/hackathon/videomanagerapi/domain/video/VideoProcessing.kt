@@ -57,7 +57,9 @@ class VideoProcessing private constructor(
 	}
 
 	fun markProcessed(objectKey: ObjectKey, changedAt: Instant) {
-		ensureStatus(VideoStatus.PROCESSING)
+		check(status == VideoStatus.PENDING_PROCESSING || status == VideoStatus.PROCESSING) {
+			"Video in status $status cannot transition to PROCESSED"
+		}
 		ensureChangedAt(changedAt)
 		outputObjectKey = objectKey
 		status = VideoStatus.PROCESSED

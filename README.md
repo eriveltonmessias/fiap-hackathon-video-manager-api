@@ -23,6 +23,7 @@ O servico possui atualmente:
 - upload multipart autenticado de videos;
 - consulta paginada e detalhe de videos isolados por cliente;
 - publicacao assincrona com Kafka e Transactional Outbox;
+- consumo idempotente dos resultados de processamento com retry e DLQ;
 - testes de integracao com PostgreSQL, MinIO e Kafka reais via Testcontainers;
 - testes das invariantes e transicoes de dominio.
 
@@ -169,6 +170,12 @@ Se a publicacao falhar, a tentativa e registrada e o evento permanece pendente
 para retry. A entrega e pelo menos uma vez; consumidores devem usar `eventId`
 para tratar repeticoes de forma idempotente.
 
+O manager consome `VideoProcessed` de `video.processing.completed` e
+`VideoProcessingFailed` de `video.processing.failed`. Cada `eventId` processado e
+registrado na mesma transacao que atualiza o video. Mensagens que continuam
+falhando depois dos retries sao publicadas no topico de origem com o sufixo
+`.dlq`.
+
 Configuracao principal:
 
 ```text
@@ -177,6 +184,8 @@ OUTBOX_FIXED_DELAY=1s
 OUTBOX_BATCH_SIZE=50
 OUTBOX_RETRY_DELAY=5s
 OUTBOX_SEND_TIMEOUT=10s
+PROCESSING_RESULTS_RETRY_INTERVAL=1s
+PROCESSING_RESULTS_MAX_RETRIES=2
 ```
 
 ## Executar testes
@@ -223,10 +232,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera o consumo dos resultados de processamento na branch:
+A proxima task sera o download do resultado processado na branch:
 
 ```text
-feature/processing-results
+feature/video-download
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/video-processing-outbox` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/processing-results` na `main`.

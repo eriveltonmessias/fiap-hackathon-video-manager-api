@@ -22,6 +22,9 @@ class JpaVideoProcessingRepository(
 	override fun findById(id: UUID): VideoProcessing? =
 		repository.findByIdOrNull(id)?.let(mapper::toDomain)
 
+	override fun findByIdForUpdate(id: UUID): VideoProcessing? =
+		repository.findByIdForUpdate(id)?.let(mapper::toDomain)
+
 	override fun findByIdAndCustomerId(id: UUID, customerId: UUID): VideoProcessing? =
 		repository.findByIdAndCustomerId(id, customerId)?.let(mapper::toDomain)
 

@@ -54,6 +54,19 @@ class VideoProcessingTest {
 	}
 
 	@Test
+	fun `accepts a worker result while processing is pending`() {
+		val video = newVideo()
+		val outputKey = ObjectKey.of("output/$customerId/$videoId/frames.zip")
+		video.markStored(ObjectKey.of("input/$customerId/$videoId/lesson.mp4"), receivedAt.plusSeconds(1))
+		video.markPendingProcessing(receivedAt.plusSeconds(2))
+
+		video.markProcessed(outputKey, receivedAt.plusSeconds(3))
+
+		assertEquals(VideoStatus.PROCESSED, video.status)
+		assertEquals(outputKey, video.outputObjectKey)
+	}
+
+	@Test
 	fun `marks a non terminal video as failed`() {
 		val video = newVideo()
 		val reason = FailureReason.of("Storage unavailable")
