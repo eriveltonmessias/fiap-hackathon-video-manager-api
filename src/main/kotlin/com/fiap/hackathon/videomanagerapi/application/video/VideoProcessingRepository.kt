@@ -6,4 +6,5 @@ import java.util.UUID
 interface VideoProcessingRepository {
 	fun save(videoProcessing: VideoProcessing): VideoProcessing
 	fun findById(id: UUID): VideoProcessing?
+	fun findByIdForUpdate(id: UUID): VideoProcessing?
 }

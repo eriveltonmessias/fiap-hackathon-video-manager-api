@@ -2,7 +2,9 @@ package com.fiap.hackathon.videomanagerapi.infrastructure.video
 
 import com.fiap.hackathon.videomanagerapi.application.video.AuthenticatedCustomerProvider
 import com.fiap.hackathon.videomanagerapi.application.video.GetVideo
+import com.fiap.hackathon.videomanagerapi.application.video.HandleVideoProcessingResult
 import com.fiap.hackathon.videomanagerapi.application.video.ListVideos
+import com.fiap.hackathon.videomanagerapi.application.video.ProcessedVideoEventRegistry
 import com.fiap.hackathon.videomanagerapi.application.video.UploadVideo
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingRepository
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingRequestRegistration
@@ -47,4 +49,10 @@ class VideoApplicationConfig {
 		authenticatedCustomerProvider: AuthenticatedCustomerProvider,
 		repository: VideoQueryRepository,
 	): ListVideos = ListVideos(authenticatedCustomerProvider, repository)
+
+	@Bean
+	fun handleVideoProcessingResult(
+		repository: VideoProcessingRepository,
+		eventRegistry: ProcessedVideoEventRegistry,
+	): HandleVideoProcessingResult = HandleVideoProcessingResult(repository, eventRegistry)
 }

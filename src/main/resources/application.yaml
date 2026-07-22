@@ -17,6 +17,14 @@ spring:
     enabled: true
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${KAFKA_PROCESSING_RESULTS_GROUP_ID:video-manager-processing-results}
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      ack-mode: record
     producer:
       acks: all
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -25,6 +33,9 @@ spring:
         enable.idempotence: true
 
 app:
+  processing-results:
+    retry-interval: ${PROCESSING_RESULTS_RETRY_INTERVAL:1s}
+    max-retries: ${PROCESSING_RESULTS_MAX_RETRIES:2}
   outbox:
     scheduling-enabled: ${OUTBOX_SCHEDULING_ENABLED:true}
     fixed-delay: ${OUTBOX_FIXED_DELAY:1s}
