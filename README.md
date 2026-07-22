@@ -27,6 +27,7 @@ O servico possui atualmente:
 - consumo idempotente dos resultados de processamento com retry e DLQ;
 - download autenticado do ZIP gerado para o proprietario do video;
 - notificacao de falhas por e-mail ou Telegram conforme preferencia do cliente;
+- fluxo de integracao completo entre HTTP, PostgreSQL, MinIO e Kafka;
 - testes de integracao com PostgreSQL, MinIO e Kafka reais via Testcontainers;
 - testes das invariantes e transicoes de dominio.
 
@@ -236,6 +237,11 @@ TELEGRAM_BOT_TOKEN=
 ./gradlew test
 ```
 
+A suite usa Testcontainers para subir PostgreSQL, MinIO e Kafka. O teste vertical
+executa upload HTTP, persistencia, armazenamento, publicacao outbox, retorno do
+processamento por Kafka, consulta e download, incluindo evento duplicado, `401`,
+`404` entre clientes e arquivo invalido.
+
 ## Executar a aplicacao
 
 ```bash
@@ -317,10 +323,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera o fluxo de integracao na branch:
+A proxima task sera container, CI e documentacao final na branch:
 
 ```text
-feature/integration-flow-tests
+feature/delivery-pipeline
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/observability` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/integration-flow-tests` na `main`.
