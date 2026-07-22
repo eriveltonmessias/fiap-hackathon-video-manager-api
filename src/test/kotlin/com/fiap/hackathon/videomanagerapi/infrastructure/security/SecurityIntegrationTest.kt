@@ -31,7 +31,7 @@ class SecurityIntegrationTest(
 ) {
 	@Test
 	fun `health check is public`() {
-		mockMvc.get("/actuator/health")
+		mockMvc.get("/actuator/health/liveness")
 			.andExpect { status { isOk() } }
 	}
 

@@ -1,5 +1,7 @@
 package com.fiap.hackathon.videomanagerapi.application.video
 
+import com.fiap.hackathon.videomanagerapi.application.observability.VideoLifecycleObserver
+import com.fiap.hackathon.videomanagerapi.application.observability.observeSafely
 import com.fiap.hackathon.videomanagerapi.domain.video.ObjectKey
 import com.fiap.hackathon.videomanagerapi.domain.video.OriginalFilename
 import com.fiap.hackathon.videomanagerapi.domain.video.VideoProcessing
@@ -28,6 +30,7 @@ class UploadVideo(
 	private val clock: Clock,
 	private val idGenerator: () -> UUID = UUID::randomUUID,
 	private val eventIdGenerator: () -> UUID = UUID::randomUUID,
+	private val observer: VideoLifecycleObserver = VideoLifecycleObserver.NONE,
 ) {
 	fun execute(command: UploadVideoCommand): UploadVideoResult {
 		val filename = command.originalFilename.toOriginalFilename()
@@ -56,6 +59,7 @@ class UploadVideo(
 			inputObjectKey = objectKey.value,
 		)
 		val saved = registration.save(video, event)
+		observer.observeSafely { videoUploadAccepted(customerId, videoId, event.eventId, command.contentLength) }
 		return UploadVideoResult(saved.id, saved.status)
 	}
 

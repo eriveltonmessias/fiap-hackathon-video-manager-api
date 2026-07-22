@@ -1,5 +1,6 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.outbox
 
+import com.fiap.hackathon.videomanagerapi.application.observability.VideoLifecycleObserver
 import com.fiap.hackathon.videomanagerapi.application.outbox.DispatchOutboxEvents
 import com.fiap.hackathon.videomanagerapi.application.outbox.OutboxEventPublisher
 import com.fiap.hackathon.videomanagerapi.application.outbox.OutboxEventStore
@@ -19,5 +20,6 @@ class OutboxConfig {
 		publisher: OutboxEventPublisher,
 		clock: Clock,
 		properties: OutboxProperties,
-	): DispatchOutboxEvents = DispatchOutboxEvents(store, publisher, clock, properties.retryDelay)
+		observer: VideoLifecycleObserver,
+	): DispatchOutboxEvents = DispatchOutboxEvents(store, publisher, clock, properties.retryDelay, observer)
 }

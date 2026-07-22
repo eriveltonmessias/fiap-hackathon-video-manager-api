@@ -33,6 +33,7 @@ dependencies {
 	implementation("io.minio:minio:9.0.1")
 	implementation("io.github.resilience4j:resilience4j-circuitbreaker:2.3.0")
 	implementation("io.github.resilience4j:resilience4j-retry:2.3.0")
+	runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("tools.jackson.module:jackson-module-kotlin")
 	runtimeOnly("org.postgresql:postgresql")
@@ -64,4 +65,5 @@ kotlin {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	systemProperty("logging.structured.format.console", "")
 }

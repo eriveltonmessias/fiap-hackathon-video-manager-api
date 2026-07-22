@@ -1,5 +1,7 @@
 package com.fiap.hackathon.videomanagerapi.application.notification
 
+import com.fiap.hackathon.videomanagerapi.application.observability.VideoLifecycleObserver
+import com.fiap.hackathon.videomanagerapi.application.observability.observeSafely
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingFailed
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingRepository
 import java.time.Clock
@@ -58,6 +60,7 @@ class NotifyVideoProcessingFailure(
 	private val senders: List<FailureNotificationSender>,
 	private val failureRecorder: NotificationFailureRecorder,
 	private val clock: Clock,
+	private val observer: VideoLifecycleObserver = VideoLifecycleObserver.NONE,
 ) {
 	fun execute(event: VideoProcessingFailed): NotificationResult {
 		val video = checkNotNull(repository.findById(event.videoId)) {
@@ -77,9 +80,28 @@ class NotifyVideoProcessingFailure(
 					failureReason = event.failureReason,
 				),
 			)
+			observer.observeSafely {
+				notificationCompleted(
+					video.customerId,
+					video.id,
+					event.eventId,
+					channel.name,
+					NotificationResult.SENT.name,
+				)
+			}
 			NotificationResult.SENT
 		} catch (exception: Exception) {
-			recordFailure(event, video.customerId, channel, safeReason(exception))
+			val result = recordFailure(event, video.customerId, channel, safeReason(exception))
+			observer.observeSafely {
+				notificationCompleted(
+					video.customerId,
+					video.id,
+					event.eventId,
+					channel?.name,
+					result.name,
+				)
+			}
+			result
 		}
 	}
 

@@ -24,7 +24,7 @@ class SecurityConfig {
 			.csrf { it.disable() }
 			.sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
 			.authorizeHttpRequests {
-				it.requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+				it.requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/prometheus").permitAll()
 				it.anyRequest().authenticated()
 			}
 			.oauth2ResourceServer { it.jwt {} }
