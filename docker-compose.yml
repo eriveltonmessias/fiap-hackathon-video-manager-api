@@ -1,4 +1,32 @@
 services:
+  video-manager-api:
+    build:
+      context: .
+    image: video-manager-api:local
+    container_name: fiapx-video-manager-api
+    environment:
+      DB_URL: jdbc:postgresql://postgres-video:5432/video_db
+      DB_USERNAME: fiapx
+      DB_PASSWORD: fiapx
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: fiapx
+      MINIO_SECRET_KEY: fiapx12345
+      CUSTOMER_AUTH_API_URL: http://host.docker.internal:8081
+      JWT_SECRET: ${JWT_SECRET:-local-development-jwt-secret-change-me-1234567890}
+      JWT_ISSUER: ${JWT_ISSUER:-customer-auth-api}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres-video:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
   postgres-video:
     image: postgres:16
     container_name: fiapx-postgres-video
@@ -57,7 +85,7 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      test: ["CMD", "nc", "-z", "localhost", "19092"]
       interval: 10s
       timeout: 5s
       retries: 10
