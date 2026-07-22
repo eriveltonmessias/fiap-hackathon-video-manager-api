@@ -1,5 +1,7 @@
 package com.fiap.hackathon.videomanagerapi.application.outbox
 
+import com.fiap.hackathon.videomanagerapi.application.observability.VideoLifecycleObserver
+import com.fiap.hackathon.videomanagerapi.application.observability.observeSafely
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -28,6 +30,7 @@ class DispatchOutboxEvents(
 	private val publisher: OutboxEventPublisher,
 	private val clock: Clock,
 	private val retryDelay: Duration,
+	private val observer: VideoLifecycleObserver = VideoLifecycleObserver.NONE,
 ) {
 	fun execute(batchSize: Int): Int {
 		require(batchSize > 0) { "batchSize must be positive" }
@@ -36,12 +39,16 @@ class DispatchOutboxEvents(
 			try {
 				publisher.publish(event)
 				store.markPublished(event.id, clock.instant())
+				observer.observeSafely { outboxPublished(event.id, event.key, event.topic, event.attempts + 1) }
 			} catch (exception: Exception) {
 				store.markFailed(
 					eventId = event.id,
 					nextAttemptAt = clock.instant().plus(retryDelay),
 					error = exception.safeMessage(),
 				)
+				observer.observeSafely {
+					outboxPublishFailed(event.id, event.key, event.topic, event.attempts + 1, exception)
+				}
 			}
 		}
 		return events.size

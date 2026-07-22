@@ -1,6 +1,8 @@
 spring:
   application:
     name: video-manager-api
+  lifecycle:
+    timeout-per-shutdown-phase: ${SHUTDOWN_TIMEOUT:30s}
   servlet:
     multipart:
       max-file-size: ${VIDEO_MAX_FILE_SIZE:500MB}
@@ -41,7 +43,16 @@ spring:
       mail.smtp.timeout: ${MAIL_READ_TIMEOUT:1000}
       mail.smtp.writetimeout: ${MAIL_WRITE_TIMEOUT:1000}
 
+logging:
+  level:
+    org.apache.kafka.clients.admin.internals.AdminMetadataManager: WARN
+  structured:
+    format:
+      console: ecs
+
 app:
+  observability:
+    health-timeout: ${OBSERVABILITY_HEALTH_TIMEOUT:2s}
   customer-auth:
     base-url: ${CUSTOMER_AUTH_API_URL:http://localhost:8081}
     internal-api-key: ${INTERNAL_API_KEY:local-internal-api-key}
@@ -97,16 +108,25 @@ app:
 
 server:
   port: ${SERVER_PORT:8082}
+  shutdown: graceful
 
 management:
+  server:
+    port: ${MANAGEMENT_SERVER_PORT:${SERVER_PORT:8082}}
   health:
     mail:
       enabled: false
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
   endpoint:
     health:
       probes:
         enabled: true
+      show-components: always
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db,kafka,minio

@@ -4,6 +4,7 @@ import com.fiap.hackathon.videomanagerapi.application.notification.FailureNotifi
 import com.fiap.hackathon.videomanagerapi.application.notification.NotificationFailureRecorder
 import com.fiap.hackathon.videomanagerapi.application.notification.NotificationPreferenceUnavailableException
 import com.fiap.hackathon.videomanagerapi.application.notification.NotifyVideoProcessingFailure
+import com.fiap.hackathon.videomanagerapi.application.observability.VideoLifecycleObserver
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingRepository
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig
@@ -85,12 +86,14 @@ class NotificationConfig {
 		senders: List<FailureNotificationSender>,
 		failureRecorder: NotificationFailureRecorder,
 		clock: Clock,
+		observer: VideoLifecycleObserver,
 	): NotifyVideoProcessingFailure = NotifyVideoProcessingFailure(
 		repository,
 		preferenceProvider,
 		senders,
 		failureRecorder,
 		clock,
+		observer,
 	)
 
 	private fun requestFactory(

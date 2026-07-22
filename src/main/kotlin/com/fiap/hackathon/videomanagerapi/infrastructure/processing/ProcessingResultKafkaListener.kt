@@ -1,6 +1,8 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.processing
 
 import com.fiap.hackathon.videomanagerapi.application.notification.NotifyVideoProcessingFailure
+import com.fiap.hackathon.videomanagerapi.application.observability.VideoLifecycleObserver
+import com.fiap.hackathon.videomanagerapi.application.observability.observeSafely
 import com.fiap.hackathon.videomanagerapi.application.video.HandlingResult
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessed
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingFailed
@@ -13,16 +15,23 @@ class ProcessingResultKafkaListener(
 	private val objectMapper: ObjectMapper,
 	private val handler: TransactionalVideoProcessingResultHandler,
 	private val notifyVideoProcessingFailure: NotifyVideoProcessingFailure,
+	private val observer: VideoLifecycleObserver,
 ) {
 	@KafkaListener(topics = [VideoProcessed.TOPIC])
 	fun consumeProcessed(payload: String) {
-		handler.handle(readEvent(payload, VideoProcessed.EVENT_TYPE, VideoProcessed::class.java))
+		val event = readEvent(payload, VideoProcessed.EVENT_TYPE, VideoProcessed::class.java)
+		observer.observeSafely { processingResultReceived(event.eventId, event.videoId, event.eventType) }
+		val result = handler.handle(event)
+		observer.observeSafely { processingResultHandled(event.eventId, event.videoId, event.eventType, result.name) }
 	}
 
 	@KafkaListener(topics = [VideoProcessingFailed.TOPIC])
 	fun consumeFailed(payload: String) {
 		val event = readEvent(payload, VideoProcessingFailed.EVENT_TYPE, VideoProcessingFailed::class.java)
-		if (handler.handle(event) == HandlingResult.PROCESSED) {
+		observer.observeSafely { processingResultReceived(event.eventId, event.videoId, event.eventType) }
+		val result = handler.handle(event)
+		observer.observeSafely { processingResultHandled(event.eventId, event.videoId, event.eventType, result.name) }
+		if (result == HandlingResult.PROCESSED) {
 			notifyVideoProcessingFailure.execute(event)
 		}
 	}

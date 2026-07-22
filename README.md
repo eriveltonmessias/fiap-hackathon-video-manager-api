@@ -9,7 +9,8 @@ O servico possui atualmente:
 - Spring Boot com Kotlin;
 - Gradle Kotlin DSL;
 - Java 21;
-- health check com Actuator;
+- health checks de liveness e readiness com Actuator;
+- metricas Prometheus e logs estruturados no formato ECS;
 - separacao inicial em camadas;
 - agregado de dominio `VideoProcessing`;
 - value objects para nomes, chaves de objetos e motivo de falha;
@@ -116,8 +117,9 @@ JWT_SECRET=local-development-jwt-secret-change-me-1234567890
 JWT_ISSUER=customer-auth-api
 ```
 
-Somente `GET /actuator/health` e publico. Os demais endpoints exigem um token
-Bearer valido com a claim `customer_id` no formato UUID.
+Os endpoints `GET /actuator/health`, seus subpaths e `GET /actuator/prometheus`
+sao publicos. Os endpoints de negocio exigem um token Bearer valido com a claim
+`customer_id` no formato UUID.
 
 ## Upload de video
 
@@ -248,19 +250,62 @@ SERVER_PORT=8092 ./gradlew bootRun
 
 ## Health check
 
-Com a aplicacao em execucao:
+Liveness verifica somente se a aplicacao esta ativa:
 
 ```bash
-curl http://localhost:8082/actuator/health
+curl http://localhost:8082/actuator/health/liveness
 ```
 
-Resposta esperada:
+Readiness inclui PostgreSQL, Kafka e MinIO e retorna `DOWN` quando alguma dessas
+dependencias nao esta disponivel:
 
-```json
-{
-  "status": "UP"
-}
+```bash
+curl http://localhost:8082/actuator/health/readiness
 ```
+
+O timeout dos indicadores externos e configurado por
+`OBSERVABILITY_HEALTH_TIMEOUT`, com valor padrao de `2s`.
+
+No EKS, configure os probes do container com estes paths:
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: management
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: management
+```
+
+`MANAGEMENT_SERVER_PORT` permite publicar Actuator em uma porta interna separada
+da API. O Service de monitoramento pode acessar essa porta, enquanto o Ingress
+publico deve encaminhar somente a porta da aplicacao. O encerramento e gracioso,
+com prazo configuravel por `SHUTDOWN_TIMEOUT` e padrao de `30s`.
+
+## Metricas e logs
+
+As metricas no formato Prometheus ficam disponiveis em:
+
+```bash
+curl http://localhost:8082/actuator/prometheus
+```
+
+No EKS, o scraper deve acessar esse endpoint pela porta de management dentro do
+cluster; o path nao deve ser publicado pelo Ingress externo.
+
+Metricas de negocio:
+
+- `video_manager_uploads_total` e tamanho dos uploads;
+- `video_manager_outbox_events_total` por resultado e topico;
+- `video_manager_processing_results_total` por tipo e resultado;
+- `video_manager_notifications_total` por canal e resultado.
+
+Os identificadores nao sao usados como tags de metricas. Os logs de runtime sao
+JSON no formato ECS e incluem `customerId`, `videoId` e `eventId` nos pontos do
+ciclo em que estao disponiveis. Erros externos registram apenas o tipo seguro da
+falha, sem mensagens, tokens ou credenciais.
 
 ## Build
 
@@ -272,10 +317,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera a observabilidade na branch:
+A proxima task sera o fluxo de integracao na branch:
 
 ```text
-feature/observability
+feature/integration-flow-tests
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/failure-notification` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/observability` na `main`.

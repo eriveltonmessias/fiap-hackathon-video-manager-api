@@ -1,5 +1,6 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.video
 
+import com.fiap.hackathon.videomanagerapi.application.observability.VideoLifecycleObserver
 import com.fiap.hackathon.videomanagerapi.application.video.AuthenticatedCustomerProvider
 import com.fiap.hackathon.videomanagerapi.application.video.DownloadVideo
 import com.fiap.hackathon.videomanagerapi.application.video.GetVideo
@@ -37,7 +38,8 @@ class VideoApplicationConfig {
 		storage: VideoStorage,
 		policy: VideoUploadPolicy,
 		clock: Clock,
-	): UploadVideo = UploadVideo(authenticatedCustomerProvider, registration, storage, policy, clock)
+		observer: VideoLifecycleObserver,
+	): UploadVideo = UploadVideo(authenticatedCustomerProvider, registration, storage, policy, clock, observer = observer)
 
 	@Bean
 	fun getVideo(
