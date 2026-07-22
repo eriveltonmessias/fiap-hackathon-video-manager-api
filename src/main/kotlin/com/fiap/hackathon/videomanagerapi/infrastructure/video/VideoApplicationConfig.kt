@@ -1,6 +1,7 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.video
 
 import com.fiap.hackathon.videomanagerapi.application.video.AuthenticatedCustomerProvider
+import com.fiap.hackathon.videomanagerapi.application.video.DownloadVideo
 import com.fiap.hackathon.videomanagerapi.application.video.GetVideo
 import com.fiap.hackathon.videomanagerapi.application.video.HandleVideoProcessingResult
 import com.fiap.hackathon.videomanagerapi.application.video.ListVideos
@@ -43,6 +44,13 @@ class VideoApplicationConfig {
 		authenticatedCustomerProvider: AuthenticatedCustomerProvider,
 		repository: VideoQueryRepository,
 	): GetVideo = GetVideo(authenticatedCustomerProvider, repository)
+
+	@Bean
+	fun downloadVideo(
+		authenticatedCustomerProvider: AuthenticatedCustomerProvider,
+		repository: VideoQueryRepository,
+		storage: VideoStorage,
+	): DownloadVideo = DownloadVideo(authenticatedCustomerProvider, repository, storage)
 
 	@Bean
 	fun listVideos(

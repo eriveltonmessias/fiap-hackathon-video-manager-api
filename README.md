@@ -24,6 +24,7 @@ O servico possui atualmente:
 - consulta paginada e detalhe de videos isolados por cliente;
 - publicacao assincrona com Kafka e Transactional Outbox;
 - consumo idempotente dos resultados de processamento com retry e DLQ;
+- download autenticado do ZIP gerado para o proprietario do video;
 - testes de integracao com PostgreSQL, MinIO e Kafka reais via Testcontainers;
 - testes das invariantes e transicoes de dominio.
 
@@ -153,6 +154,20 @@ A listagem aceita paginas a partir de `0` e tamanho entre `1` e `100`. Videos
 de outro cliente retornam o mesmo `404` de um identificador inexistente. As
 respostas nao expoem as chaves internas dos objetos no MinIO.
 
+## Download do resultado
+
+Depois que o video atingir o status `PROCESSED`, baixe o ZIP gerado:
+
+```bash
+curl http://localhost:8082/videos/VIDEO_ID/download \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  --output frames.zip
+```
+
+O arquivo e transmitido diretamente pelo manager como `application/zip`, sem
+expor a chave interna do MinIO. Videos ainda nao processados retornam
+`409 Conflict`; videos inexistentes ou pertencentes a outro cliente retornam `404`.
+
 ## Kafka e Outbox
 
 Inicie o broker Kafka na porta `9092`:
@@ -232,10 +247,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera o download do resultado processado na branch:
+A proxima task sera a notificacao de falha na branch:
 
 ```text
-feature/video-download
+feature/failure-notification
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/processing-results` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/video-download` na `main`.

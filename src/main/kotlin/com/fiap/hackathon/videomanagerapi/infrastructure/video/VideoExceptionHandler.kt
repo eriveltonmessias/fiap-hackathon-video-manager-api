@@ -2,8 +2,9 @@ package com.fiap.hackathon.videomanagerapi.infrastructure.video
 
 import com.fiap.hackathon.videomanagerapi.application.video.InvalidVideoUploadException
 import com.fiap.hackathon.videomanagerapi.application.video.InvalidVideoQueryException
-import com.fiap.hackathon.videomanagerapi.application.video.VideoTooLargeException
 import com.fiap.hackathon.videomanagerapi.application.video.VideoNotFoundException
+import com.fiap.hackathon.videomanagerapi.application.video.VideoNotReadyForDownloadException
+import com.fiap.hackathon.videomanagerapi.application.video.VideoTooLargeException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -30,6 +31,10 @@ class VideoExceptionHandler {
 	@ExceptionHandler(InvalidVideoQueryException::class)
 	fun invalidQuery(exception: InvalidVideoQueryException, request: HttpServletRequest) =
 		response(HttpStatus.BAD_REQUEST, exception.message.orEmpty(), request)
+
+	@ExceptionHandler(VideoNotReadyForDownloadException::class)
+	fun conflict(exception: VideoNotReadyForDownloadException, request: HttpServletRequest) =
+		response(HttpStatus.CONFLICT, exception.message.orEmpty(), request)
 
 	@ExceptionHandler(InvalidVideoUploadException::class, MultipartException::class)
 	fun badRequest(exception: RuntimeException, request: HttpServletRequest) =

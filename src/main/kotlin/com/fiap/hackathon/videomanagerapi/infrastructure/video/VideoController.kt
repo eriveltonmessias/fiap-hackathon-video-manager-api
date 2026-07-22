@@ -1,5 +1,6 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.video
 
+import com.fiap.hackathon.videomanagerapi.application.video.DownloadVideo
 import com.fiap.hackathon.videomanagerapi.application.video.GetVideo
 import com.fiap.hackathon.videomanagerapi.application.video.ListVideos
 import com.fiap.hackathon.videomanagerapi.application.video.UploadVideo
@@ -7,10 +8,13 @@ import com.fiap.hackathon.videomanagerapi.application.video.UploadVideoCommand
 import com.fiap.hackathon.videomanagerapi.application.video.VideoPage
 import com.fiap.hackathon.videomanagerapi.domain.video.VideoProcessing
 import com.fiap.hackathon.videomanagerapi.domain.video.VideoStatus
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.core.io.InputStreamResource
+import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
@@ -48,6 +52,7 @@ class VideoController(
 	private val uploadVideo: UploadVideo,
 	private val getVideo: GetVideo,
 	private val listVideos: ListVideos,
+	private val downloadVideo: DownloadVideo,
 ) {
 	@PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
 	@ResponseStatus(HttpStatus.ACCEPTED)
@@ -71,6 +76,17 @@ class VideoController(
 
 	@GetMapping("/{videoId}")
 	fun get(@PathVariable videoId: UUID): VideoResponse = getVideo.execute(videoId).toResponse()
+
+	@GetMapping("/{videoId}/download")
+	fun download(@PathVariable videoId: UUID): ResponseEntity<InputStreamResource> {
+		val download = downloadVideo.execute(videoId)
+		return ResponseEntity.ok()
+			.contentType(MediaType("application", "zip"))
+			.headers { headers ->
+				headers.contentDisposition = ContentDisposition.attachment().filename(download.filename).build()
+			}
+			.body(InputStreamResource(download.content))
+	}
 }
 
 private fun VideoProcessing.toResponse(): VideoResponse = VideoResponse(
