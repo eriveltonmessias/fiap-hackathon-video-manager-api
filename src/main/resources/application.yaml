@@ -31,8 +31,33 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       properties:
         enable.idempotence: true
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.connectiontimeout: ${MAIL_CONNECTION_TIMEOUT:1000}
+      mail.smtp.timeout: ${MAIL_READ_TIMEOUT:1000}
+      mail.smtp.writetimeout: ${MAIL_WRITE_TIMEOUT:1000}
 
 app:
+  customer-auth:
+    base-url: ${CUSTOMER_AUTH_API_URL:http://localhost:8081}
+    internal-api-key: ${INTERNAL_API_KEY:local-internal-api-key}
+    connect-timeout: ${CUSTOMER_AUTH_CONNECT_TIMEOUT:500ms}
+    read-timeout: ${CUSTOMER_AUTH_READ_TIMEOUT:1s}
+    retry-max-attempts: ${CUSTOMER_AUTH_RETRY_MAX_ATTEMPTS:3}
+    retry-delay: ${CUSTOMER_AUTH_RETRY_DELAY:100ms}
+    circuit-breaker-window-size: ${CUSTOMER_AUTH_CIRCUIT_WINDOW_SIZE:5}
+    circuit-breaker-minimum-calls: ${CUSTOMER_AUTH_CIRCUIT_MINIMUM_CALLS:3}
+    circuit-breaker-failure-rate: ${CUSTOMER_AUTH_CIRCUIT_FAILURE_RATE:50}
+    circuit-breaker-open-duration: ${CUSTOMER_AUTH_CIRCUIT_OPEN_DURATION:10s}
+  notifications:
+    email-from: ${NOTIFICATION_EMAIL_FROM:no-reply@fiapx.local}
+    telegram-bot-token: ${TELEGRAM_BOT_TOKEN:}
+    telegram-connect-timeout: ${TELEGRAM_CONNECT_TIMEOUT:500ms}
+    telegram-read-timeout: ${TELEGRAM_READ_TIMEOUT:1s}
   processing-results:
     retry-interval: ${PROCESSING_RESULTS_RETRY_INTERVAL:1s}
     max-retries: ${PROCESSING_RESULTS_MAX_RETRIES:2}
@@ -74,6 +99,9 @@ server:
   port: ${SERVER_PORT:8082}
 
 management:
+  health:
+    mail:
+      enabled: false
   endpoints:
     web:
       exposure:

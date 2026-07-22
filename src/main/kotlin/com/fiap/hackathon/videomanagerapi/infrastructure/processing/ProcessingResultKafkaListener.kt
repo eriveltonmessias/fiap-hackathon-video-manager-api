@@ -1,28 +1,30 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.processing
 
-import com.fiap.hackathon.videomanagerapi.application.video.HandleVideoProcessingResult
+import com.fiap.hackathon.videomanagerapi.application.notification.NotifyVideoProcessingFailure
+import com.fiap.hackathon.videomanagerapi.application.video.HandlingResult
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessed
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingFailed
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 
 @Component
 class ProcessingResultKafkaListener(
 	private val objectMapper: ObjectMapper,
-	private val handler: HandleVideoProcessingResult,
+	private val handler: TransactionalVideoProcessingResultHandler,
+	private val notifyVideoProcessingFailure: NotifyVideoProcessingFailure,
 ) {
-	@Transactional
 	@KafkaListener(topics = [VideoProcessed.TOPIC])
 	fun consumeProcessed(payload: String) {
 		handler.handle(readEvent(payload, VideoProcessed.EVENT_TYPE, VideoProcessed::class.java))
 	}
 
-	@Transactional
 	@KafkaListener(topics = [VideoProcessingFailed.TOPIC])
 	fun consumeFailed(payload: String) {
-		handler.handle(readEvent(payload, VideoProcessingFailed.EVENT_TYPE, VideoProcessingFailed::class.java))
+		val event = readEvent(payload, VideoProcessingFailed.EVENT_TYPE, VideoProcessingFailed::class.java)
+		if (handler.handle(event) == HandlingResult.PROCESSED) {
+			notifyVideoProcessingFailure.execute(event)
+		}
 	}
 
 	private fun <T : Any> readEvent(payload: String, expectedType: String, eventClass: Class<T>): T {

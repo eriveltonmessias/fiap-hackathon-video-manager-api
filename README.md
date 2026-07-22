@@ -25,6 +25,7 @@ O servico possui atualmente:
 - publicacao assincrona com Kafka e Transactional Outbox;
 - consumo idempotente dos resultados de processamento com retry e DLQ;
 - download autenticado do ZIP gerado para o proprietario do video;
+- notificacao de falhas por e-mail ou Telegram conforme preferencia do cliente;
 - testes de integracao com PostgreSQL, MinIO e Kafka reais via Testcontainers;
 - testes das invariantes e transicoes de dominio.
 
@@ -203,6 +204,30 @@ PROCESSING_RESULTS_RETRY_INTERVAL=1s
 PROCESSING_RESULTS_MAX_RETRIES=2
 ```
 
+## Notificacao de falha
+
+Ao consumir `VideoProcessingFailed`, o manager confirma o estado `FAILED` no
+banco antes de consultar a preferencia do cliente. A consulta ao
+`customer-auth-api` usa chave interna, timeout, retry limitado e circuit breaker.
+
+O canal `EMAIL` usa SMTP e o canal `TELEGRAM` usa a Bot API. Se a preferencia ou
+o envio falhar definitivamente, o erro seguro e registrado em
+`notification_failures` sem alterar o resultado do processamento.
+
+Configuracao principal:
+
+```text
+CUSTOMER_AUTH_API_URL=http://localhost:8081
+INTERNAL_API_KEY=local-internal-api-key
+CUSTOMER_AUTH_CONNECT_TIMEOUT=500ms
+CUSTOMER_AUTH_READ_TIMEOUT=1s
+CUSTOMER_AUTH_RETRY_MAX_ATTEMPTS=3
+MAIL_HOST=localhost
+MAIL_PORT=1025
+NOTIFICATION_EMAIL_FROM=no-reply@fiapx.local
+TELEGRAM_BOT_TOKEN=
+```
+
 ## Executar testes
 
 ```bash
@@ -247,10 +272,10 @@ O JAR executavel sera gerado em `build/libs/`.
 
 ## Proxima task
 
-A proxima task sera a notificacao de falha na branch:
+A proxima task sera a observabilidade na branch:
 
 ```text
-feature/failure-notification
+feature/observability
 ```
 
-Essa branch somente deve ser criada depois do merge de `feature/video-download` na `main`.
+Essa branch somente deve ser criada depois do merge de `feature/failure-notification` na `main`.

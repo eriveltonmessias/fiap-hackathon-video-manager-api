@@ -10,6 +10,7 @@ import com.fiap.hackathon.videomanagerapi.domain.video.OriginalFilename
 import com.fiap.hackathon.videomanagerapi.domain.video.VideoProcessing
 import com.fiap.hackathon.videomanagerapi.domain.video.VideoStatus
 import com.fiap.hackathon.videomanagerapi.infrastructure.video.SpringDataVideoProcessingRepository
+import com.fiap.hackathon.videomanagerapi.infrastructure.notification.SpringDataNotificationFailureRepository
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -32,6 +33,10 @@ import kotlin.test.assertTrue
 	properties = [
 		"app.processing-results.retry-interval=50ms",
 		"app.processing-results.max-retries=1",
+		"app.customer-auth.base-url=http://localhost:1",
+		"app.customer-auth.connect-timeout=100ms",
+		"app.customer-auth.read-timeout=100ms",
+		"app.customer-auth.retry-max-attempts=1",
 	],
 )
 @Import(TestcontainersConfiguration::class, KafkaTestcontainersConfiguration::class)
@@ -41,11 +46,13 @@ class ProcessingResultKafkaIntegrationTest(
 	@Autowired private val repository: VideoProcessingRepository,
 	@Autowired private val springDataRepository: SpringDataVideoProcessingRepository,
 	@Autowired private val processedEventRepository: SpringDataProcessedVideoEventRepository,
+	@Autowired private val notificationFailureRepository: SpringDataNotificationFailureRepository,
 	@Autowired private val kafkaContainer: KafkaContainer,
 	@Autowired private val listener: ProcessingResultKafkaListener,
 ) {
 	@BeforeEach
 	fun cleanDatabase() {
+		notificationFailureRepository.deleteAll()
 		processedEventRepository.deleteAll()
 		springDataRepository.deleteAll()
 	}
@@ -110,6 +117,11 @@ class ProcessingResultKafkaIntegrationTest(
 		val failed = awaitVideo(video.id, VideoStatus.FAILED)
 		assertEquals(event.failureReason, failed.failureReason?.value)
 		assertEquals(1, processedEventRepository.count())
+		awaitCondition { notificationFailureRepository.findByEventId(event.eventId) != null }
+		val notificationFailure = notificationFailureRepository.findByEventId(event.eventId)
+		assertNotNull(notificationFailure)
+		assertEquals("Customer notification preference is unavailable", notificationFailure.reason)
+		assertEquals(VideoStatus.FAILED, repository.findById(video.id)?.status)
 	}
 
 	@Test
