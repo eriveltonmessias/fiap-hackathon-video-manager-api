@@ -130,8 +130,8 @@ por Kubernetes Secrets ou por um gerenciador externo; nao use os defaults locais
 | `CUSTOMER_AUTH_CIRCUIT_MINIMUM_CALLS` | `3` | Chamadas minimas para avaliar falhas. |
 | `CUSTOMER_AUTH_CIRCUIT_FAILURE_RATE` | `50` | Percentual que abre o circuito. |
 | `CUSTOMER_AUTH_CIRCUIT_OPEN_DURATION` | `10s` | Duracao do circuito aberto. |
-| `MAIL_HOST` | `localhost` | Host SMTP. |
-| `MAIL_PORT` | `1025` | Porta SMTP. |
+| `MAIL_HOST` | `smtp.gmail.com` | Host SMTP. |
+| `MAIL_PORT` | `587` | Porta SMTP. |
 | `MAIL_USERNAME` | vazio | Usuario SMTP. |
 | `MAIL_PASSWORD` | vazio | Senha SMTP. |
 | `MAIL_CONNECTION_TIMEOUT` | `1000` | Conexao SMTP em milissegundos. |
@@ -139,7 +139,7 @@ por Kubernetes Secrets ou por um gerenciador externo; nao use os defaults locais
 | `MAIL_WRITE_TIMEOUT` | `1000` | Escrita SMTP em milissegundos. |
 | `MAIL_SMTP_AUTH` | `true` | Habilita autenticacao SMTP. |
 | `MAIL_SMTP_STARTTLS_ENABLE` | `true` | Habilita STARTTLS no SMTP. |
-| `NOTIFICATION_EMAIL_FROM` | `no-reply@fiapx.local` | Remetente das notificacoes. |
+| `NOTIFICATION_EMAIL_FROM` | valor de `MAIL_USERNAME` no EKS | Remetente das notificacoes. |
 | `PUBLIC_API_BASE_URL` | `http://localhost:8082` | Base publica usada no link de download. |
 | `TELEGRAM_BOT_TOKEN` | vazio | Token do bot Telegram. |
 | `TELEGRAM_CONNECT_TIMEOUT` | `500ms` | Conexao com Telegram. |
@@ -151,11 +151,12 @@ Para o envio de e-mail no EKS, configure no repositorio GitHub:
 
 | Tipo | Nome | Exemplo |
 | --- | --- | --- |
-| Variable | `MAIL_HOST` | `smtp.gmail.com` |
-| Variable | `MAIL_PORT` | `587` |
-| Variable | `NOTIFICATION_EMAIL_FROM` | `seu-email@gmail.com` |
 | Secret | `MAIL_USERNAME` | `seu-email@gmail.com` |
 | Secret | `MAIL_PASSWORD` | senha de aplicativo SMTP |
+
+As variables `MAIL_HOST`, `MAIL_PORT` e `NOTIFICATION_EMAIL_FROM` sao opcionais.
+Por padrao, a pipeline usa Gmail em `smtp.gmail.com:587` e o mesmo endereco de
+`MAIL_USERNAME` como remetente.
 
 O Terraform descobre automaticamente o hostname atual do Service
 `kong-proxy` e o injeta como `PUBLIC_API_BASE_URL`; o endereço do Load Balancer

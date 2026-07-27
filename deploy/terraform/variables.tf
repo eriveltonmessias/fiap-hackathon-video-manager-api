@@ -22,7 +22,8 @@ variable "service_type" {
 }
 
 variable "mail_host" {
-  type = string
+  type    = string
+  default = "smtp.gmail.com"
 }
 
 variable "mail_port" {
