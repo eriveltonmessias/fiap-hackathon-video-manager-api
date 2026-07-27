@@ -5,11 +5,11 @@ locals {
     image                 = "${data.terraform_remote_state.infra.outputs.ecr_repository_urls["video-manager-api"]}:${var.image_tag}"
     replicas              = var.replicas
     service_type          = var.service_type
-    postgres_password     = var.postgres_password
-    jwt_secret            = var.jwt_secret
-    internal_api_key      = var.internal_api_key
-    s3_access_key         = var.s3_access_key
-    s3_secret_key         = var.s3_secret_key
+    postgres_password     = jsonencode(var.postgres_password)
+    jwt_secret            = jsonencode(var.jwt_secret)
+    internal_api_key      = jsonencode(var.internal_api_key)
+    s3_access_key         = jsonencode(var.s3_access_key)
+    s3_secret_key         = jsonencode(var.s3_secret_key)
     s3_endpoint           = "https://s3.${var.aws_region}.amazonaws.com"
     s3_input_bucket_name  = data.terraform_remote_state.data_platform.outputs.s3_input_bucket
     s3_output_bucket_name = data.terraform_remote_state.data_platform.outputs.s3_output_bucket
