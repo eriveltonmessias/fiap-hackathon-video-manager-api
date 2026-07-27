@@ -1,5 +1,6 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.observability
 
+import io.minio.MinioClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.springframework.boot.health.contributor.Status
 import java.time.Duration
@@ -23,12 +24,14 @@ class InfrastructureHealthIndicatorsTest {
 	}
 
 	@Test
-	fun `reports unavailable MinIO within the configured timeout`() {
-		val (health, elapsed) = measureTimedValue {
-			MinioHealthIndicator("http://localhost:1", Duration.ofMillis(100)).health()
-		}
+	fun `reports unavailable object storage`() {
+		val minioClient = MinioClient.builder()
+			.endpoint("http://localhost:1")
+			.credentials("access-key", "secret-key")
+			.build()
+
+		val health = MinioHealthIndicator(minioClient, listOf("input", "output")).health()
 
 		assertEquals(Status.DOWN, health.status)
-		assertTrue(elapsed < kotlin.time.Duration.parse("1s"))
 	}
 }

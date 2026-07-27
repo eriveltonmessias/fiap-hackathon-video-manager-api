@@ -1,13 +1,11 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.observability
 
+import io.minio.BucketExistsArgs
+import io.minio.MinioClient
 import org.apache.kafka.clients.admin.Admin
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.springframework.boot.health.contributor.Health
 import org.springframework.boot.health.contributor.HealthIndicator
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
@@ -35,19 +33,17 @@ class KafkaHealthIndicator(
 }
 
 class MinioHealthIndicator(
-	endpoint: String,
-	private val timeout: Duration,
+	private val minioClient: MinioClient,
+	private val bucketNames: List<String>,
 ) : HealthIndicator {
-	private val healthUri = URI.create("${endpoint.trimEnd('/')}/minio/health/live")
-	private val httpClient = HttpClient.newBuilder().connectTimeout(timeout).build()
-
 	override fun health(): Health = try {
-		val request = HttpRequest.newBuilder(healthUri).timeout(timeout).GET().build()
-		val response = httpClient.send(request, HttpResponse.BodyHandlers.discarding())
-		if (response.statusCode() in 200..299) {
-			Health.up().build()
+		val missingBuckets = bucketNames.filterNot { bucketName ->
+			minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())
+		}
+		if (missingBuckets.isEmpty()) {
+			Health.up().withDetail("buckets", bucketNames).build()
 		} else {
-			Health.down().withDetail("statusCode", response.statusCode()).build()
+			Health.down().withDetail("missingBuckets", missingBuckets).build()
 		}
 	} catch (exception: Exception) {
 		Health.down().withDetail("errorType", exception.javaClass.simpleName).build()
