@@ -13,5 +13,12 @@ locals {
     s3_endpoint           = "https://s3.${var.aws_region}.amazonaws.com"
     s3_input_bucket_name  = data.terraform_remote_state.data_platform.outputs.s3_input_bucket
     s3_output_bucket_name = data.terraform_remote_state.data_platform.outputs.s3_output_bucket
+    secret_checksum = nonsensitive(sha256(join("|", [
+      var.postgres_password,
+      var.jwt_secret,
+      var.internal_api_key,
+      var.s3_access_key,
+      var.s3_secret_key,
+    ])))
   }
 }

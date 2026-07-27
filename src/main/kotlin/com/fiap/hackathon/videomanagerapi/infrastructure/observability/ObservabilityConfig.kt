@@ -1,6 +1,7 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.observability
 
 import com.fiap.hackathon.videomanagerapi.infrastructure.storage.MinioProperties
+import io.minio.MinioClient
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -22,7 +23,10 @@ class ObservabilityConfig {
 
 	@Bean
 	fun minioHealthIndicator(
+		minioClient: MinioClient,
 		minioProperties: MinioProperties,
-		properties: ObservabilityProperties,
-	): MinioHealthIndicator = MinioHealthIndicator(minioProperties.endpoint, properties.healthTimeout)
+	): MinioHealthIndicator = MinioHealthIndicator(
+		minioClient,
+		listOf(minioProperties.inputBucket, minioProperties.outputBucket),
+	)
 }
