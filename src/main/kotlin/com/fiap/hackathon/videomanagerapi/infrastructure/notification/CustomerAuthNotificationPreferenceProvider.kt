@@ -8,6 +8,7 @@ import com.fiap.hackathon.videomanagerapi.application.notification.NotificationP
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.github.resilience4j.retry.Retry
+import org.slf4j.LoggerFactory
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
@@ -25,6 +26,8 @@ class CustomerAuthNotificationPreferenceProvider(
 	private val retry: Retry,
 	private val circuitBreaker: CircuitBreaker,
 ) : NotificationPreferenceProvider {
+	private val logger = LoggerFactory.getLogger(javaClass)
+
 	override fun get(customerId: UUID): NotificationPreference = try {
 		retry.executeSupplier {
 			circuitBreaker.executeSupplier { requestPreference(customerId) }
@@ -35,12 +38,20 @@ class CustomerAuthNotificationPreferenceProvider(
 
 	private fun requestPreference(customerId: UUID): NotificationPreference {
 		try {
+			logger.atInfo()
+				.addKeyValue("customerId", customerId)
+				.log("Requesting notification preference from Customer Auth")
 			val response = restClient.get()
 				.uri("/internal/customers/{customerId}/notification-preference", customerId)
 				.retrieve()
 				.body(NotificationPreferenceResponse::class.java)
 				?: throw NotificationPreferenceUnavailableException()
 			check(response.customerId == customerId) { "Customer auth returned a different customerId" }
+			logger.atInfo()
+				.addKeyValue("customerId", customerId)
+				.addKeyValue("channel", response.channel)
+				.addKeyValue("email", response.email)
+				.log("Notification preference received from Customer Auth")
 			return NotificationPreference(
 				customerId = response.customerId,
 				channel = response.channel,
