@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -32,5 +33,17 @@ jobs:
       - name: Build and test
         run: ./gradlew build --no-daemon
 
-      - name: Build Docker image
-        run: docker build --tag video-manager-api:${{ github.sha }} .
+      - name: Set image tag
+        id: image
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build container image
+        run: docker build --tag "${{ steps.image.outputs.image }}" .
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+
+      - name: Push container image
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: docker push "${{ steps.image.outputs.image }}"

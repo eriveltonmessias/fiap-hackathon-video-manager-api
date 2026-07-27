@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-manager-api
+  namespace: ${apps_namespace}
+  labels:
+    app.kubernetes.io/name: video-manager-api
+spec:
+  replicas: ${replicas}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: video-manager-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: video-manager-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8082"
+    spec:
+      containers:
+        - name: api
+          image: ${image}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: video-manager-api
+            - secretRef:
+                name: video-manager-api
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
