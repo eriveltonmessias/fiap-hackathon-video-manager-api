@@ -1,0 +1,7 @@
+image = "ghcr.io/SEU_USUARIO/video-manager-api:<commit-sha>"
+
+postgres_password = "trocar"
+jwt_secret        = "trocar-por-um-segredo-grande"
+internal_api_key  = "trocar"
+s3_access_key     = "trocar"
+s3_secret_key     = "trocar"
