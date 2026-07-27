@@ -14,4 +14,5 @@ class KafkaTestcontainersConfiguration {
 	fun kafkaContainer(): KafkaContainer =
 		KafkaContainer(DockerImageName.parse("apache/kafka-native:4.0.0"))
 			.withStartupTimeout(Duration.ofMinutes(2))
+			.withStartupAttempts(3)
 }
