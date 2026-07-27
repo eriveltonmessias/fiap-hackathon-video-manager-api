@@ -3,7 +3,9 @@ package com.fiap.hackathon.videomanagerapi.infrastructure.notification
 import com.fiap.hackathon.videomanagerapi.application.notification.FailureNotificationSender
 import com.fiap.hackathon.videomanagerapi.application.notification.NotificationFailureRecorder
 import com.fiap.hackathon.videomanagerapi.application.notification.NotificationPreferenceUnavailableException
+import com.fiap.hackathon.videomanagerapi.application.notification.NotifyVideoProcessingCompleted
 import com.fiap.hackathon.videomanagerapi.application.notification.NotifyVideoProcessingFailure
+import com.fiap.hackathon.videomanagerapi.application.notification.ProcessingCompletedNotificationSender
 import com.fiap.hackathon.videomanagerapi.application.observability.VideoLifecycleObserver
 import com.fiap.hackathon.videomanagerapi.application.video.VideoProcessingRepository
 import io.github.resilience4j.circuitbreaker.CircuitBreaker
@@ -80,6 +82,18 @@ class NotificationConfig {
 	): FailureNotificationSender = TelegramFailureNotificationSender(restClient, properties)
 
 	@Bean
+	fun emailProcessingCompletedNotificationSender(
+		mailSender: JavaMailSender,
+		properties: NotificationProperties,
+	): ProcessingCompletedNotificationSender = EmailProcessingCompletedNotificationSender(mailSender, properties)
+
+	@Bean
+	fun telegramProcessingCompletedNotificationSender(
+		@Qualifier("telegramRestClient") restClient: RestClient,
+		properties: NotificationProperties,
+	): ProcessingCompletedNotificationSender = TelegramProcessingCompletedNotificationSender(restClient, properties)
+
+	@Bean
 	fun notifyVideoProcessingFailure(
 		repository: VideoProcessingRepository,
 		preferenceProvider: CustomerAuthNotificationPreferenceProvider,
@@ -92,6 +106,25 @@ class NotificationConfig {
 		preferenceProvider,
 		senders,
 		failureRecorder,
+		clock,
+		observer,
+	)
+
+	@Bean
+	fun notifyVideoProcessingCompleted(
+		repository: VideoProcessingRepository,
+		preferenceProvider: CustomerAuthNotificationPreferenceProvider,
+		senders: List<ProcessingCompletedNotificationSender>,
+		failureRecorder: NotificationFailureRecorder,
+		properties: NotificationProperties,
+		clock: Clock,
+		observer: VideoLifecycleObserver,
+	): NotifyVideoProcessingCompleted = NotifyVideoProcessingCompleted(
+		repository,
+		preferenceProvider,
+		senders,
+		failureRecorder,
+		properties.publicBaseUrl,
 		clock,
 		observer,
 	)

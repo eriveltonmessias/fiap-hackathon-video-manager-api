@@ -11,6 +11,11 @@ terraform {
       source  = "gavinbunney/kubectl"
       version = "~> 1.19"
     }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.37.1, < 4.0.0"
+    }
   }
 
   backend "s3" {

@@ -87,6 +87,6 @@ class MetricsAndLoggingVideoLifecycleObserver(
 			.addKeyValue("eventId", eventId)
 			.addKeyValue("channel", channel ?: "unknown")
 			.addKeyValue("result", result)
-			.log("Failure notification attempt completed")
+			.log("Notification attempt completed")
 	}
 }

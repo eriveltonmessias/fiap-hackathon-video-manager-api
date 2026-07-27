@@ -20,6 +20,7 @@ data class CustomerAuthProperties(
 @ConfigurationProperties("app.notifications")
 data class NotificationProperties(
 	val emailFrom: String = "no-reply@fiapx.local",
+	val publicBaseUrl: String = "http://localhost:8082",
 	val telegramBotToken: String = "",
 	val telegramConnectTimeout: Duration = Duration.ofMillis(500),
 	val telegramReadTimeout: Duration = Duration.ofSeconds(1),

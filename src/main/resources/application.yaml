@@ -34,14 +34,16 @@ spring:
       properties:
         enable.idempotence: true
   mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
     properties:
       mail.smtp.connectiontimeout: ${MAIL_CONNECTION_TIMEOUT:1000}
       mail.smtp.timeout: ${MAIL_READ_TIMEOUT:1000}
       mail.smtp.writetimeout: ${MAIL_WRITE_TIMEOUT:1000}
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
 
 logging:
   level:
@@ -65,7 +67,8 @@ app:
     circuit-breaker-failure-rate: ${CUSTOMER_AUTH_CIRCUIT_FAILURE_RATE:50}
     circuit-breaker-open-duration: ${CUSTOMER_AUTH_CIRCUIT_OPEN_DURATION:10s}
   notifications:
-    email-from: ${NOTIFICATION_EMAIL_FROM:no-reply@fiapx.local}
+    email-from: ${NOTIFICATION_EMAIL_FROM:${MAIL_USERNAME:no-reply@fiapx.local}}
+    public-base-url: ${PUBLIC_API_BASE_URL:http://localhost:8082}
     telegram-bot-token: ${TELEGRAM_BOT_TOKEN:}
     telegram-connect-timeout: ${TELEGRAM_CONNECT_TIMEOUT:500ms}
     telegram-read-timeout: ${TELEGRAM_READ_TIMEOUT:1s}
