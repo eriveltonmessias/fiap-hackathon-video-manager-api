@@ -18,7 +18,30 @@ variable "replicas" {
 
 variable "service_type" {
   type    = string
-  default = "LoadBalancer"
+  default = "ClusterIP"
+}
+
+variable "mail_host" {
+  type = string
+}
+
+variable "mail_port" {
+  type    = number
+  default = 587
+}
+
+variable "notification_email_from" {
+  type = string
+}
+
+variable "mail_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "mail_password" {
+  type      = string
+  sensitive = true
 }
 
 variable "postgres_password" {

@@ -137,12 +137,29 @@ por Kubernetes Secrets ou por um gerenciador externo; nao use os defaults locais
 | `MAIL_CONNECTION_TIMEOUT` | `1000` | Conexao SMTP em milissegundos. |
 | `MAIL_READ_TIMEOUT` | `1000` | Leitura SMTP em milissegundos. |
 | `MAIL_WRITE_TIMEOUT` | `1000` | Escrita SMTP em milissegundos. |
+| `MAIL_SMTP_AUTH` | `true` | Habilita autenticacao SMTP. |
+| `MAIL_SMTP_STARTTLS_ENABLE` | `true` | Habilita STARTTLS no SMTP. |
 | `NOTIFICATION_EMAIL_FROM` | `no-reply@fiapx.local` | Remetente das notificacoes. |
+| `PUBLIC_API_BASE_URL` | `http://localhost:8082` | Base publica usada no link de download. |
 | `TELEGRAM_BOT_TOKEN` | vazio | Token do bot Telegram. |
 | `TELEGRAM_CONNECT_TIMEOUT` | `500ms` | Conexao com Telegram. |
 | `TELEGRAM_READ_TIMEOUT` | `1s` | Leitura do Telegram. |
 | `OBSERVABILITY_HEALTH_TIMEOUT` | `2s` | Timeout dos health indicators. |
 | `SHUTDOWN_TIMEOUT` | `30s` | Prazo do encerramento gracioso. |
+
+Para o envio de e-mail no EKS, configure no repositorio GitHub:
+
+| Tipo | Nome | Exemplo |
+| --- | --- | --- |
+| Variable | `MAIL_HOST` | `smtp.gmail.com` |
+| Variable | `MAIL_PORT` | `587` |
+| Variable | `NOTIFICATION_EMAIL_FROM` | `seu-email@gmail.com` |
+| Secret | `MAIL_USERNAME` | `seu-email@gmail.com` |
+| Secret | `MAIL_PASSWORD` | senha de aplicativo SMTP |
+
+O Terraform descobre automaticamente o hostname atual do Service
+`kong-proxy` e o injeta como `PUBLIC_API_BASE_URL`; o endereço do Load Balancer
+nao precisa ser cadastrado no GitHub.
 
 ## Build, testes e imagem
 
@@ -167,10 +184,11 @@ em `video.processing.requested`. O manager consome `VideoProcessed` de
 `video.processing.failed`. Mensagens que esgotam os retries seguem para o topico
 de origem com sufixo `.dlq`.
 
-Falhas de processamento sao confirmadas no banco antes da notificacao. A
-preferencia do cliente vem do `customer-auth-api`; os canais suportados sao
-e-mail e Telegram. Falhas definitivas de notificacao sao registradas sem mudar o
-resultado do processamento.
+Resultados de processamento sao confirmados no banco antes da notificacao. Em
+caso de sucesso, a mensagem inclui o link autenticado de download publicado pelo
+Kong. A preferencia do cliente vem do `customer-auth-api`; os canais suportados
+sao e-mail e Telegram. Falhas definitivas de notificacao sao registradas sem
+mudar o resultado do processamento.
 
 ## Observabilidade e EKS
 

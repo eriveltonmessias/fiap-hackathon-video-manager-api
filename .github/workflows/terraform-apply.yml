@@ -42,6 +42,11 @@ jobs:
       TF_VAR_internal_api_key: ${{ secrets.INTERNAL_API_KEY }}
       TF_VAR_s3_access_key: ${{ secrets.S3_ACCESS_KEY }}
       TF_VAR_s3_secret_key: ${{ secrets.S3_SECRET_KEY }}
+      TF_VAR_mail_host: ${{ vars.MAIL_HOST }}
+      TF_VAR_mail_port: ${{ vars.MAIL_PORT || '587' }}
+      TF_VAR_notification_email_from: ${{ vars.NOTIFICATION_EMAIL_FROM }}
+      TF_VAR_mail_username: ${{ secrets.MAIL_USERNAME }}
+      TF_VAR_mail_password: ${{ secrets.MAIL_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -51,7 +56,7 @@ jobs:
 
       - name: Validate required secrets
         run: |
-          for name in TF_VAR_postgres_password TF_VAR_jwt_secret TF_VAR_internal_api_key TF_VAR_s3_access_key TF_VAR_s3_secret_key; do
+          for name in TF_VAR_postgres_password TF_VAR_jwt_secret TF_VAR_internal_api_key TF_VAR_s3_access_key TF_VAR_s3_secret_key TF_VAR_mail_host TF_VAR_notification_email_from TF_VAR_mail_username TF_VAR_mail_password; do
             test -n "${!name}" || {
               echo "Required secret for $name is missing."
               exit 1

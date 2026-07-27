@@ -1,5 +1,6 @@
 package com.fiap.hackathon.videomanagerapi.infrastructure.processing
 
+import com.fiap.hackathon.videomanagerapi.application.notification.NotifyVideoProcessingCompleted
 import com.fiap.hackathon.videomanagerapi.application.notification.NotifyVideoProcessingFailure
 import com.fiap.hackathon.videomanagerapi.application.observability.VideoLifecycleObserver
 import com.fiap.hackathon.videomanagerapi.application.observability.observeSafely
@@ -14,6 +15,7 @@ import tools.jackson.databind.ObjectMapper
 class ProcessingResultKafkaListener(
 	private val objectMapper: ObjectMapper,
 	private val handler: TransactionalVideoProcessingResultHandler,
+	private val notifyVideoProcessingCompleted: NotifyVideoProcessingCompleted,
 	private val notifyVideoProcessingFailure: NotifyVideoProcessingFailure,
 	private val observer: VideoLifecycleObserver,
 ) {
@@ -23,6 +25,9 @@ class ProcessingResultKafkaListener(
 		observer.observeSafely { processingResultReceived(event.eventId, event.videoId, event.eventType) }
 		val result = handler.handle(event)
 		observer.observeSafely { processingResultHandled(event.eventId, event.videoId, event.eventType, result.name) }
+		if (result == HandlingResult.PROCESSED) {
+			notifyVideoProcessingCompleted.execute(event)
+		}
 	}
 
 	@KafkaListener(topics = [VideoProcessingFailed.TOPIC])

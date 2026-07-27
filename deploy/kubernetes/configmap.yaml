@@ -10,3 +10,9 @@ data:
   MINIO_INPUT_BUCKET: ${s3_input_bucket_name}
   MINIO_OUTPUT_BUCKET: ${s3_output_bucket_name}
   CUSTOMER_AUTH_API_URL: http://customer-auth-api.${apps_namespace}.svc.cluster.local:8081
+  PUBLIC_API_BASE_URL: ${public_api_base_url}
+  MAIL_HOST: ${mail_host}
+  MAIL_PORT: "${mail_port}"
+  MAIL_SMTP_AUTH: "true"
+  MAIL_SMTP_STARTTLS_ENABLE: "true"
+  NOTIFICATION_EMAIL_FROM: ${notification_email_from}
