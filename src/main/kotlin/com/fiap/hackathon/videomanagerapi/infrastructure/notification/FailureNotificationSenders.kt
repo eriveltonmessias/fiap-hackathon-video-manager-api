@@ -7,6 +7,7 @@ import com.fiap.hackathon.videomanagerapi.application.notification.NotificationD
 import com.fiap.hackathon.videomanagerapi.application.notification.NotificationPreference
 import com.fiap.hackathon.videomanagerapi.application.notification.ProcessingCompletedNotificationMessage
 import com.fiap.hackathon.videomanagerapi.application.notification.ProcessingCompletedNotificationSender
+import org.slf4j.LoggerFactory
 import org.springframework.mail.MailException
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -18,9 +19,16 @@ class EmailFailureNotificationSender(
 	private val properties: NotificationProperties,
 ) : FailureNotificationSender {
 	override val channel: NotificationChannel = NotificationChannel.EMAIL
+	private val logger = LoggerFactory.getLogger(javaClass)
 
 	override fun send(preference: NotificationPreference, message: FailureNotificationMessage) {
 		try {
+			logger.atInfo()
+				.addKeyValue("customerId", preference.customerId)
+				.addKeyValue("videoId", message.videoId)
+				.addKeyValue("recipient", preference.email)
+				.addKeyValue("notificationType", "processing_failed")
+				.log("Sending email notification")
 			mailSender.send(
 				SimpleMailMessage().apply {
 					from = properties.emailFrom
@@ -29,6 +37,12 @@ class EmailFailureNotificationSender(
 					text = notificationText(message)
 				},
 			)
+			logger.atInfo()
+				.addKeyValue("customerId", preference.customerId)
+				.addKeyValue("videoId", message.videoId)
+				.addKeyValue("recipient", preference.email)
+				.addKeyValue("notificationType", "processing_failed")
+				.log("Email notification sent")
 		} catch (exception: MailException) {
 			throw NotificationDeliveryException("EMAIL notification failed", exception)
 		}
@@ -63,9 +77,16 @@ class EmailProcessingCompletedNotificationSender(
 	private val properties: NotificationProperties,
 ) : ProcessingCompletedNotificationSender {
 	override val channel: NotificationChannel = NotificationChannel.EMAIL
+	private val logger = LoggerFactory.getLogger(javaClass)
 
 	override fun send(preference: NotificationPreference, message: ProcessingCompletedNotificationMessage) {
 		try {
+			logger.atInfo()
+				.addKeyValue("customerId", preference.customerId)
+				.addKeyValue("videoId", message.videoId)
+				.addKeyValue("recipient", preference.email)
+				.addKeyValue("notificationType", "processing_completed")
+				.log("Sending email notification")
 			mailSender.send(
 				SimpleMailMessage().apply {
 					from = properties.emailFrom
@@ -74,6 +95,12 @@ class EmailProcessingCompletedNotificationSender(
 					text = completedNotificationText(message)
 				},
 			)
+			logger.atInfo()
+				.addKeyValue("customerId", preference.customerId)
+				.addKeyValue("videoId", message.videoId)
+				.addKeyValue("recipient", preference.email)
+				.addKeyValue("notificationType", "processing_completed")
+				.log("Email notification sent")
 		} catch (exception: MailException) {
 			throw NotificationDeliveryException("EMAIL notification failed", exception)
 		}
